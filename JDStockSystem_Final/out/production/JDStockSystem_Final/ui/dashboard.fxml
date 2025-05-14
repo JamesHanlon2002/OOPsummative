@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml" fx:controller="controllers.DashboardController">
+
+    <top>
+        <HBox spacing="10" alignment="CENTER">
+            <Label text="JD Sports Inventory Dashboard" style="-fx-font-size: 20px;" />
+            <Button text="Logout" onAction="#handleLogout" />
+        </HBox>
+    </top>
+
+    <center>
+        <TableView fx:id="productTable" prefHeight="300">
+            <columns>
+                <TableColumn fx:id="idColumn" text="ID" />
+                <TableColumn fx:id="nameColumn" text="Name" />
+                <TableColumn fx:id="typeColumn" text="Type" />
+                <TableColumn fx:id="costColumn" text="Cost Price" />
+                <TableColumn fx:id="sellColumn" text="Sell Price" />
+                <TableColumn fx:id="quantityColumn" text="Quantity" />
+            </columns>
+        </TableView>
+    </center>
+
+    <bottom>
+        <HBox spacing="10" alignment="CENTER">
+            <Button text="Buy Stock" onAction="#handleBuy" />
+            <Button text="Sell Stock" onAction="#handleSell" />
+            <Button text="Sell All Stock" onAction="#handleSellAll" />
+            <Button text="Print Product Info" onAction="#handlePrintProduct" />
+            <Button text="Print All Stock" onAction="#handlePrintAll" />
+        </HBox>
+    </bottom>
+
+</BorderPane>
