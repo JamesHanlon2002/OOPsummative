@@ -11,6 +11,15 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import app.Database;
+import java.sql.PreparedStatement;
+import javafx.scene.control.Alert;
+import javafx.scene.control.TextInputDialog;
+import java.util.Optional;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
+
+
+
 
 
 public class DashboardController {
@@ -29,7 +38,7 @@ public class DashboardController {
     public void initialize() {
         try (Connection conn = Database.getConnection();
              Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery("SELECT * FROM products")) {
+             ResultSet rs = stmt.executeQuery("SELECT * FROM stock")) {
 
             while (rs.next()) {
                 String id = rs.getString("id");
@@ -49,7 +58,6 @@ public class DashboardController {
                         continue;
                     }
                 }
-//commit test
                 products.add(product);
             }
 
@@ -71,22 +79,128 @@ public class DashboardController {
     public void handleBuy(ActionEvent event) {
         Product selected = productTable.getSelectionModel().getSelectedItem();
         if (selected != null) {
-            selected.increaseStock(10);
-            productTable.refresh();
+            TextInputDialog dialog = new TextInputDialog();
+            dialog.setTitle("Buy Stock");
+            dialog.setHeaderText("Add Stock for: " + selected.getName());
+            dialog.setContentText("Enter quantity to buy:");
+
+            Optional<String> result = dialog.showAndWait();
+            result.ifPresent(input -> {
+                try {
+                    int qty = Integer.parseInt(input);
+                    if (qty <= 0) throw new NumberFormatException();
+
+                    selected.increaseStock(qty);
+
+                    try (Connection conn = Database.getConnection();
+                         PreparedStatement stmt = conn.prepareStatement(
+                                 "UPDATE stock SET quantity = ? WHERE id = ?")) {
+                        stmt.setInt(1, selected.getQuantity());
+                        stmt.setString(2, selected.getId());
+                        stmt.executeUpdate();
+                    }
+
+                    productTable.refresh();
+
+                } catch (NumberFormatException e) {
+                    showError("Invalid input", "Please enter a valid positive number.");
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            });
         }
     }
+
+    private void showError(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+
+
 
     public void handleSell(ActionEvent event) {
         Product selected = productTable.getSelectionModel().getSelectedItem();
         if (selected != null) {
-            selected.decreaseStock(5);
-            productTable.refresh();
+            if (selected.getQuantity() <= 0) {
+                showError("Out of Stock", "This item is out of stock and cannot be sold.");
+                return;
+            }
+
+            TextInputDialog dialog = new TextInputDialog();
+            dialog.setTitle("Sell Stock");
+            dialog.setHeaderText("Sell Stock for: " + selected.getName());
+            dialog.setContentText("Enter quantity to sell:");
+
+            Optional<String> result = dialog.showAndWait();
+            result.ifPresent(input -> {
+                try {
+                    int qty = Integer.parseInt(input);
+                    if (qty <= 0 || qty > selected.getQuantity()) {
+                        showError("Invalid quantity", "Quantity must be positive and not exceed current stock.");
+                        return;
+                    }
+
+                    selected.decreaseStock(qty);
+
+                    try (Connection conn = Database.getConnection();
+                         PreparedStatement stmt = conn.prepareStatement(
+                                 "UPDATE stock SET quantity = ? WHERE id = ?")) {
+                        stmt.setInt(1, selected.getQuantity());
+                        stmt.setString(2, selected.getId());
+                        stmt.executeUpdate();
+                    }
+
+                    productTable.refresh();
+
+                } catch (NumberFormatException e) {
+                    showError("Invalid input", "Please enter a valid positive number.");
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            });
         }
     }
 
-    public void handleSellAll(ActionEvent event){
 
+
+    public void handleSellAll(ActionEvent event) {
+        Product selected = productTable.getSelectionModel().getSelectedItem();
+        if (selected != null) {
+            int currentQty = selected.getQuantity();
+
+            if (currentQty <= 0) {
+                showError("Out of Stock", "This item is already out of stock.");
+                return;
+            }
+
+            Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+            confirm.setTitle("Confirm Sell All");
+            confirm.setHeaderText("Sell all units of: " + selected.getName());
+            confirm.setContentText("This will set quantity to 0. Continue?");
+
+            Optional<ButtonType> result = confirm.showAndWait();
+            if (result.isPresent() && result.get() == ButtonType.OK) {
+                selected.decreaseStock(currentQty);
+
+                try (Connection conn = Database.getConnection();
+                     PreparedStatement stmt = conn.prepareStatement(
+                             "UPDATE stock SET quantity = 0 WHERE id = ?")) {
+
+                    stmt.setString(1, selected.getId());
+                    stmt.executeUpdate();
+
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+
+                productTable.refresh();
+            }
+        }
     }
+
 
     public void handlePrintProduct(ActionEvent event) {
         Product selected = productTable.getSelectionModel().getSelectedItem();
