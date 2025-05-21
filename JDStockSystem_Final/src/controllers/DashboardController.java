@@ -15,9 +15,14 @@ import java.sql.PreparedStatement;
 import javafx.scene.control.Alert;
 import javafx.scene.control.TextInputDialog;
 import java.util.Optional;
-import javafx.scene.control.Alert;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.File;
+import java.io.IOException;
 import javafx.scene.control.ButtonType;
-
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.awt.Desktop;
 
 
 
@@ -111,15 +116,6 @@ public class DashboardController {
         }
     }
 
-    private void showError(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle(title);
-        alert.setContentText(message);
-        alert.showAndWait();
-    }
-
-
-
 
     public void handleSell(ActionEvent event) {
         Product selected = productTable.getSelectionModel().getSelectedItem();
@@ -205,19 +201,95 @@ public class DashboardController {
     public void handlePrintProduct(ActionEvent event) {
         Product selected = productTable.getSelectionModel().getSelectedItem();
         if (selected != null) {
-            System.out.println("Printing product: " + selected);
+            String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy__HH-mm-ss"));
+            String basePath = System.getProperty("user.dir");
+            File folder = new File(basePath + "/exports");
+            File file = new File(folder,"product_" + selected.getId() + "  " + timestamp + ".txt");
+
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+                writer.write("Product Information:\n");
+                writer.write("ID: " + selected.getId() + "\n");
+                writer.write("Name: " + selected.getName() + "\n");
+                writer.write("Type: " + selected.getType() + "\n");
+                writer.write("Cost Price: " + selected.getCostPrice() + "\n");
+                writer.write("Sell Price: " + selected.getSellPrice() + "\n");
+                writer.write("Quantity: " + selected.getQuantity() + "\n");
+                writer.write("Total Stock Value (Cost): " + (selected.getCostPrice() * selected.getQuantity()) + "\n");
+                writer.write("Total Stock Value (Selling): " + (selected.getSellPrice() * selected.getQuantity()) + "\n");
+
+                showConfirmation("Product info saved to: " + file.getAbsolutePath());
+                if (Desktop.isDesktopSupported()) {
+                    Desktop.getDesktop().open(file);
+                }
+
+            } catch (IOException e) {
+                showError("File Error", "Could not write to file.");
+                e.printStackTrace();
+            }
         }
     }
 
     public void handlePrintAll(ActionEvent event) {
-        System.out.println("All stock:");
-        for (Product p : products) {
-            System.out.println(p);
+        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy__HH-mm-ss"));
+        String basePath = System.getProperty("user.dir");
+        File folder = new File(basePath + "/exports");
+        File file = new File(folder,"all_stock" + timestamp + ".txt");
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+            writer.write("All Stock Information:\n\n");
+
+            double totalCostValue = 0;
+            double totalSellValue = 0;
+
+            for (Product p : products) {
+                writer.write("ID: " + p.getId() + "\n");
+                writer.write("Name: " + p.getName() + "\n");
+                writer.write("Type: " + p.getType() + "\n");
+                writer.write("Cost Price: " + p.getCostPrice() + "\n");
+                writer.write("Sell Price: " + p.getSellPrice() + "\n");
+                writer.write("Quantity: " + p.getQuantity() + "\n");
+                writer.write("Total Stock Value (Cost): " + (p.getCostPrice() * p.getQuantity()) + "\n");
+                writer.write("Total Stock Value (Selling): " + (p.getSellPrice() * p.getQuantity()) + "\n");
+                writer.write("--------------\n");
+
+                totalCostValue += p.getCostPrice() * p.getQuantity();
+                totalSellValue += p.getSellPrice() * p.getQuantity();
+            }
+
+            writer.write("\nTotal Stock Value (Cost): " + totalCostValue + "\n");
+            writer.write("Total Stock Value (Selling): " + totalSellValue + "\n");
+
+            showConfirmation("All stock info saved to: " + file.getAbsolutePath());
+            if (Desktop.isDesktopSupported()) {
+                Desktop.getDesktop().open(file);
+            }
+
+        } catch (IOException e) {
+            showError("File Error", "Could not write to file.");
+            e.printStackTrace();
         }
     }
+
 
     public void handleLogout(ActionEvent event) {
         System.out.println("Logout clicked");
         // Go back to login screen
     }
+
+    private void showConfirmation(String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Success");
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    private void showError(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
 }
