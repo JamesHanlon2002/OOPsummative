@@ -1,0 +1,9 @@
+Product Information:
+ID: E3
+Name: Tennis Racket
+Type: Equipment
+Cost Price: 15.0
+Sell Price: 40.0
+Quantity: 25
+Total Stock Value (Cost): 375.0
+Total Stock Value (Selling): 1000.0

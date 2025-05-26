@@ -1,0 +1,86 @@
+All Stock Information:
+
+ID: C1
+Name: Adidas Running Shirt
+Type: Clothing
+Cost Price: 10.0
+Sell Price: 40.0
+Quantity: 100
+Total Stock Value (Cost): 1000.0
+Total Stock Value (Selling): 4000.0
+--------------
+ID: C2
+Name: Nike Golf Shirt
+Type: Clothing
+Cost Price: 10.0
+Sell Price: 35.0
+Quantity: 100
+Total Stock Value (Cost): 1000.0
+Total Stock Value (Selling): 3500.0
+--------------
+ID: C3
+Name: Nike Tennis Shorts
+Type: Clothing
+Cost Price: 10.0
+Sell Price: 25.0
+Quantity: 100
+Total Stock Value (Cost): 1000.0
+Total Stock Value (Selling): 2500.0
+--------------
+ID: S1
+Name: Walking Boots
+Type: Shoe
+Cost Price: 25.0
+Sell Price: 85.0
+Quantity: 50
+Total Stock Value (Cost): 1250.0
+Total Stock Value (Selling): 4250.0
+--------------
+ID: S2
+Name: Puma Football Boots
+Type: Shoe
+Cost Price: 25.0
+Sell Price: 115.0
+Quantity: 50
+Total Stock Value (Cost): 1250.0
+Total Stock Value (Selling): 5750.0
+--------------
+ID: S3
+Name: Adidas Trainers
+Type: Shoe
+Cost Price: 20.0
+Sell Price: 60.0
+Quantity: 50
+Total Stock Value (Cost): 1000.0
+Total Stock Value (Selling): 3000.0
+--------------
+ID: E1
+Name: GoalKeeper Gloves
+Type: Equipment
+Cost Price: 5.0
+Sell Price: 15.0
+Quantity: 25
+Total Stock Value (Cost): 125.0
+Total Stock Value (Selling): 375.0
+--------------
+ID: E2
+Name: Nike Football
+Type: Equipment
+Cost Price: 3.0
+Sell Price: 12.99
+Quantity: 25
+Total Stock Value (Cost): 75.0
+Total Stock Value (Selling): 324.75
+--------------
+ID: E3
+Name: Tennis Racket
+Type: Equipment
+Cost Price: 15.0
+Sell Price: 40.0
+Quantity: 25
+Total Stock Value (Cost): 375.0
+Total Stock Value (Selling): 1000.0
+--------------
+
+Total Stock Value (Cost): 7075.0
+Total Stock Value (Selling): 24699.75

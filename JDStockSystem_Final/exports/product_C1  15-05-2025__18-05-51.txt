@@ -1,0 +1,9 @@
+Product Information:
+ID: C1
+Name: Adidas Running Shirt
+Type: Clothing
+Cost Price: 10.0
+Sell Price: 40.0
+Quantity: 100
+Total Stock Buy Price 1000.0
+Total Stock Sell Price 4000.0
