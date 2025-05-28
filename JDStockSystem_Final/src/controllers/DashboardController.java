@@ -1,6 +1,9 @@
 package controllers;
 
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
 import javafx.scene.control.*;
 import javafx.event.ActionEvent;
 import javafx.collections.FXCollections;
@@ -41,7 +44,7 @@ public class DashboardController {
 
     @FXML
     public void initialize() {
-        try (Connection conn = Database.getConnection();
+        try (Connection conn = Database.getConnection("database/stock.db");
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery("SELECT * FROM stock")) {
 
@@ -97,7 +100,7 @@ public class DashboardController {
 
                     selected.increaseStock(qty);
 
-                    try (Connection conn = Database.getConnection();
+                    try (Connection conn = Database.getConnection("database/stock.db");
                          PreparedStatement stmt = conn.prepareStatement(
                                  "UPDATE stock SET quantity = ? WHERE id = ?")) {
                         stmt.setInt(1, selected.getQuantity());
@@ -141,7 +144,7 @@ public class DashboardController {
 
                     selected.decreaseStock(qty);
 
-                    try (Connection conn = Database.getConnection();
+                    try (Connection conn = Database.getConnection("database/stock.db");
                          PreparedStatement stmt = conn.prepareStatement(
                                  "UPDATE stock SET quantity = ? WHERE id = ?")) {
                         stmt.setInt(1, selected.getQuantity());
@@ -181,7 +184,7 @@ public class DashboardController {
             if (result.isPresent() && result.get() == ButtonType.OK) {
                 selected.decreaseStock(currentQty);
 
-                try (Connection conn = Database.getConnection();
+                try (Connection conn = Database.getConnection("database/stock.db");
                      PreparedStatement stmt = conn.prepareStatement(
                              "UPDATE stock SET quantity = 0 WHERE id = ?")) {
 
@@ -291,5 +294,31 @@ public class DashboardController {
         alert.setContentText(message);
         alert.showAndWait();
     }
+
+    public void handleOpenRegister(ActionEvent event) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/ui/register.fxml"));
+            Scene scene = new Scene(loader.load());
+            Stage stage = new Stage();
+            stage.setTitle("Register New User");
+            stage.setScene(scene);
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    @FXML private Button manageUsersButton; // Make sure this matches the fx:id in your FXML
+
+    private String userRole;
+
+    public void setUserRole(String role) {
+        this.userRole = role;
+
+        // Hide the button if not admin
+        if (!"admin".equalsIgnoreCase(role)) {
+            manageUsersButton.setVisible(false);
+        }
+    }
+
 
 }

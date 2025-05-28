@@ -33,6 +33,7 @@
             <Button text="Sell All Stock" onAction="#handleSellAll" />
             <Button text="Print Product Info" onAction="#handlePrintProduct" />
             <Button text="Print All Stock" onAction="#handlePrintAll" />
+            <Button fx:id="manageUsersButton" text="Manage Users" onAction="#handleOpenRegister" />
         </HBox>
     </bottom>
 

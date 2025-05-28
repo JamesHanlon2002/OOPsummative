@@ -1,14 +1,19 @@
 package controllers;
 
-import javafx.fxml.FXML;
-import javafx.scene.control.*;
+import app.Database;
 import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.control.*;
 import javafx.stage.Stage;
 
 import java.io.IOException;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
 
 public class LoginController {
 
@@ -21,46 +26,50 @@ public class LoginController {
     @FXML
     private Label errorLabel;
 
-    // Path to your SQLite DB file
-    private final String DB_URL = "jdbc:sqlite:./src/users/users.db";
-
     public void handleLogin(ActionEvent event) {
-        String username = usernameField.getText();
-        String password = passwordField.getText();
+        String username = usernameField.getText().trim();
+        String password = passwordField.getText().trim();
 
-        if (validateLogin(username, password)) {
-            try {
+        if (username.isEmpty() || password.isEmpty()) {
+            errorLabel.setText("Please enter both username and password.");
+            return;
+        }
+
+        try (Connection conn = Database.getConnection("src/users/users.db");
+             PreparedStatement stmt = conn.prepareStatement(
+                     "SELECT role, approved FROM users WHERE username = ? AND password = ?")) {
+
+            stmt.setString(1, username);
+            stmt.setString(2, password);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                String role = rs.getString("role");
+                boolean approved = rs.getInt("approved") == 1;
+
+                if (!approved) {
+                    errorLabel.setText("Account pending admin approval.");
+                    return;
+                }
+
+
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/ui/dashboard.fxml"));
-                Scene dashboardScene = new Scene(loader.load());
+                Scene scene = new Scene(loader.load());
+
+                DashboardController controller = loader.getController();
+                controller.setUserRole(role);
 
                 Stage stage = (Stage) usernameField.getScene().getWindow();
-                stage.setScene(dashboardScene);
-            } catch (IOException e) {
-                errorLabel.setText("Failed to load dashboard.");
-                e.printStackTrace();
+                stage.setScene(scene);
+
+
+            } else {
+                errorLabel.setText("Invalid username or password.");
             }
-        } else {
-            errorLabel.setText("Invalid username or password.");
-        }
-    }
 
-    private boolean validateLogin(String username, String password) {
-        String query = "SELECT * FROM users WHERE username = ? AND password = ?";
-
-        try (Connection conn = DriverManager.getConnection(DB_URL);
-             PreparedStatement pstmt = conn.prepareStatement(query)) {
-
-            pstmt.setString(1, username);
-            pstmt.setString(2, password);
-
-            ResultSet rs = pstmt.executeQuery();
-            return rs.next(); // login success if a result is found
-
-        } catch (SQLException e) {
+        } catch (SQLException | IOException e) {
+            errorLabel.setText("Login failed due to an error.");
             e.printStackTrace();
-            errorLabel.setText("Database error.");
         }
-
-        return false;
     }
 }
