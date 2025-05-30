@@ -9,6 +9,8 @@ import javafx.event.ActionEvent;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import models.*;
+import javafx.collections.transformation.FilteredList;
+import java.io.*;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -18,10 +20,6 @@ import java.sql.PreparedStatement;
 import javafx.scene.control.Alert;
 import javafx.scene.control.TextInputDialog;
 import java.util.Optional;
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.File;
-import java.io.IOException;
 import javafx.scene.control.ButtonType;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -39,11 +37,18 @@ public class DashboardController {
     @FXML private TableColumn<Product, Double> costColumn;
     @FXML private TableColumn<Product, Double> sellColumn;
     @FXML private TableColumn<Product, Integer> quantityColumn;
+    @FXML private TableColumn<Product, String> descriptionColumn;
+    @FXML private TableColumn<Product, javafx.scene.image.ImageView> imageColumn;
+    @FXML private TextField searchField;
 
-    private ObservableList<Product> products = FXCollections.observableArrayList();
+
+    private ObservableList<Product> masterData = FXCollections.observableArrayList();
+    private FilteredList<Product> filteredData;
+
 
     @FXML
     public void initialize() {
+
         try (Connection conn = Database.getConnection("database/stock.db");
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery("SELECT * FROM stock")) {
@@ -55,26 +60,31 @@ public class DashboardController {
                 double cost = rs.getDouble("cost_price");
                 double sell = rs.getDouble("sell_price");
                 int qty = rs.getInt("quantity");
+                String desc = rs.getString("description");
 
                 Product product;
                 switch (type) {
-                    case "Clothing" -> product = new Clothing(id, name, cost, sell, qty);
-                    case "Shoe" -> product = new Shoe(id, name, cost, sell, qty);
-                    case "Equipment" -> product = new Equipment(id, name, cost, sell, qty);
+                    case "Clothing" -> product = new Clothing(id, name, cost, sell, qty, desc);
+                    case "Shoe" -> product = new Shoe(id, name, cost, sell, qty, desc);
+                    case "Equipment" -> product = new Equipment(id, name, cost, sell, qty,desc);
                     default -> {
                         System.out.println("Unknown product type: " + type);
                         continue;
                     }
                 }
-                products.add(product);
+                masterData.add(product);
             }
+
+            filteredData = new FilteredList<>(masterData, p -> true);
+            productTable.setItems(filteredData);
+
 
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
 
-        productTable.setItems(products);
+        productTable.setItems(filteredData);
 
         idColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue().getId()));
         nameColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue().getName()));
@@ -82,6 +92,22 @@ public class DashboardController {
         costColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleObjectProperty<>(cellData.getValue().getCostPrice()));
         sellColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleObjectProperty<>(cellData.getValue().getSellPrice()));
         quantityColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleObjectProperty<>(cellData.getValue().getQuantity()));
+        descriptionColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue().getDescription()));
+        imageColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleObjectProperty<>(cellData.getValue().getImageView()));
+
+    }
+
+    @FXML
+    private void handleSearch() {
+        String keyword = searchField.getText().toLowerCase();
+
+        filteredData.setPredicate(product -> {
+            if (keyword.isEmpty()) return true;
+
+            return product.getId().toLowerCase().contains(keyword) ||
+                    product.getName().toLowerCase().contains(keyword) ||
+                    product.getType().toLowerCase().contains(keyword);
+        });
     }
 
     public void handleBuy(ActionEvent event) {
@@ -244,7 +270,7 @@ public class DashboardController {
             double totalCostValue = 0;
             double totalSellValue = 0;
 
-            for (Product p : products) {
+            for (Product p : masterData) {
                 writer.write("ID: " + p.getId() + "\n");
                 writer.write("Name: " + p.getName() + "\n");
                 writer.write("Type: " + p.getType() + "\n");
@@ -307,14 +333,13 @@ public class DashboardController {
             e.printStackTrace();
         }
     }
-    @FXML private Button manageUsersButton; // Make sure this matches the fx:id in your FXML
+    @FXML private Button manageUsersButton;
 
     private String userRole;
 
     public void setUserRole(String role) {
         this.userRole = role;
 
-        // Hide the button if not admin
         if (!"admin".equalsIgnoreCase(role)) {
             manageUsersButton.setVisible(false);
         }

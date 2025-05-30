@@ -11,6 +11,10 @@
             <Label text="JD Sports Inventory Dashboard" style="-fx-font-size: 20px;" />
             <Button text="Logout" onAction="#handleLogout" />
         </HBox>
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <Label text="Search:" />
+            <TextField fx:id="searchField" onKeyReleased="#handleSearch" promptText="Search by ID, name, or type..." />
+        </HBox>
     </top>
 
     <center>
@@ -22,6 +26,8 @@
                 <TableColumn fx:id="costColumn" text="Cost Price" />
                 <TableColumn fx:id="sellColumn" text="Sell Price" />
                 <TableColumn fx:id="quantityColumn" text="Quantity" />
+                <TableColumn fx:id="descriptionColumn" text="Description" prefWidth="500" />
+                <TableColumn fx:id="imageColumn" text="Image" prefWidth="70" />
             </columns>
         </TableView>
     </center>
